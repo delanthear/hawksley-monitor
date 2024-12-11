@@ -1,15 +1,14 @@
 from PIL import Image, ImageDraw, ImageFont
 from inky.auto import auto
-from font_fredoka_one import FredokaOne
 from font_hanken_grotesk import HankenGroteskBold, HankenGroteskMedium
 from datetime import datetime
 
-import glob
 import os
 import pprint
 import ripple
 import fox
 
+# set to output data structures
 debug = 0
 
 # initialise the display
@@ -23,8 +22,10 @@ PATH = os.path.dirname(__file__)
 rippleAPIKey = "ADD YOUR RIPPLE API KEY"
 rippleDataset = ripple.getRippleData(rippleAPIKey)
 
-if debug:
-	pprint.pprint(rippleDataset)
+# Fox API Calls
+fox_api_key = "ADD YOUR FOX API KEY";
+fox_serial = "ADD YOUR FOX SERIAL";
+foxDataset = fox.getfoxData(fox_api_key, fox_serial)
 
 foxDataset = fox.getfoxData()
 
@@ -34,18 +35,18 @@ foxdataDict = {item['variable']: {'value': item['value'], 'unit': item['unit']}
 
 # Iterate over the dictionary and adjust the values and units if needed
 for variable, data in foxdataDict.items():
-        # Only convert if the value is less than 1
-        if data['value'] < 1:
-                if data['unit'] == 'kW':
-                        data['value'] *= 1000  # Convert kW to W
-                        data['unit'] = 'W'     # Change the unit to W
-                        data['value'] = int(round(data['value'], 0))  # Round to 0 decimal places if unit is W
-        elif data['unit'] == 'kW':
-                data['value'] = round(data['value'], 2)  # Round to 2 decimal places if unit stays kW
-
-# Now you can access both the value and the unit for each variable
-if debug: 
-	print(foxdataDict)
+    # Only convert if the value is less than 1
+    if data['value'] < 1:
+        if data['unit'] == 'kW':
+            data['value'] *= 1000  # Convert kW to W
+            data['unit'] = 'W'     # Change the unit to W
+            data['value'] = int(round(data['value'], 0))  # Round to 0 decimal places if unit is W
+    elif data['unit'] == 'kW':
+            data['value'] = round(data['value'], 2)  # Round to 2 decimal places if unit stays kW
+ 
+if debug:
+	pprint.pprint(rippleDataset)
+	pprint.pprint(foxdataDict)
 
 img = Image.new("P", inky_display.resolution)
 draw = ImageDraw.Draw(img)
@@ -60,8 +61,6 @@ inkyheight = inky_display.height
 half_inkyheight = inkyheight / 2
 quarter_inkyheight = inkyheight / 4
 threequarter_inkyheight = inkyheight - quarter_inkyheight
-
-border_space = 10
 
 if debug:
 	print ("Inky width: " + str(inkywidth))
@@ -108,6 +107,26 @@ draw.line((threequarter_inkywidth, 0, threequarter_inkywidth, inkyheight - 20), 
 ##################################################
 # Icons
 
+def create_mask(source, mask=(inky_display.WHITE, inky_display.BLACK, inky_display.RED)):
+    """Create a transparency mask.
+
+    Takes a paletized source image and converts it into a mask
+    permitting all the colours supported by Inky pHAT (0, 1, 2)
+    or an optional list of allowed colours.
+
+    :param mask: Optional list of Inky pHAT colours to allow.
+
+    """
+    mask_image = Image.new("1", source.size)
+    w, h = source.size
+    for x in range(w):
+        for y in range(h):
+            p = source.getpixel((x, y))
+            if p in mask:
+                mask_image.putpixel((x, y), 255)
+
+    return mask_image
+
 icons_path = PATH + "/resources/"
 
 solar_icon_filename = icons_path + "solar-gen.png"
@@ -116,13 +135,15 @@ house_icon_filename = icons_path + "house-load.png"
 sun_icon_filename = icons_path + "icon-sun.png"
 windspeed_icon_filename = icons_path + "icon-wind.png"
 usage_icon_filename = icons_path + "house-usage.png"
-export_icon_filename = icons_path + "power_export.png"
+export_icon_filename = icons_path + "power-export.png"
 
 # Is the battery charging? Select the appropriate icon
 if int(foxdataDict['batChargePower']['value']) > 0:
 	battery_icon_filename = icons_path + "battery-charging.png"
 else:
 	battery_icon_filename = icons_path + "battery-draining.png"
+
+masks = {}
 
 icon_dictionary = [solar_icon_filename, wind_icon_filename, battery_icon_filename, house_icon_filename, sun_icon_filename, windspeed_icon_filename, usage_icon_filename]
 icon_positions = [(2, int(history_data_top) + 5), (2, int(history_data_middle) + 5), (0,1), (int(half_inkywidth) + 1, 1), (int(half_inkywidth) + 1, int(quarter_inkyheight)+11), (int(threequarter_inkywidth)+1, int(quarter_inkyheight)+11), (int(threequarter_inkywidth + 1), 1)]
@@ -135,7 +156,7 @@ if int(foxdataDict['feedinPower']['value']) > 0:
 # Load and place multiple icons
 for icon_path, position in zip(icon_dictionary, icon_positions):
     icon = Image.open(icon_path).resize((35, 35))  # Resize icons if necessary
-    img.paste(icon, position)
+    img.paste(icon, position, create_mask(icon))
 
 ##################################################
 # Battery
@@ -297,7 +318,6 @@ draw.text((x, y), lastupdate, inky_display.BLACK, font)
 
 inky_display.set_image(img)
 inky_display.show()
-
 
 logentry =  "Finished running monitor: " + formatted_last_update
 print(logentry)

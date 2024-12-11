@@ -10,7 +10,7 @@ def getRippleData(apiKey):
     generationData = rippleDataset['generation_assets'][0]['generation']
     latest_wind_speed = generationData['latest_telemetry']['wind_speed_avg']
 
-    def number_format(value, decimals=2): 
+    def number_format(value, decimals=2):
         return f"{value:,.{decimals}f}"
 
     rippleResults = {
@@ -26,4 +26,4 @@ def getRippleData(apiKey):
         "month_savings": {'value': number_format((generationData['today']['earned'] + generationData['this_month']['earned']), 2), 'unit': '£', 'name': 'Monthly Earnings'},
         "year_savings": {'value': number_format(generationData['this_year']['earned'], 2), 'unit': '£', 'name': 'Yearly Earnings'}
     }
-    return rippleResults;
+    return rippleResults

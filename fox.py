@@ -7,14 +7,11 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 last_call = {}          # timestamp of the last call for a given path
-response_time = {}      # response time in seconds of the last call for a given path
 query_delay = 1         # minimum time between calls in seconds
 lang = "en"
 time_zone = "Europe/London"
 user_agent = "Hawksley Dash v2"
 foxessapi = "https://www.foxesscloud.com";
-api_key = "ADD YOUR API KEY";
-serial = "ADD YOUR SERIAL NUMBER";
 path = "/op/v0/device/real/query"
 
 def signed_header(path):
@@ -40,7 +37,6 @@ def signed_header(path):
     return headers
 
 def getRealTimeFoxData():
-
 	post_query = {  'sn': serial, 
 			'variables': ['SoC', 'pvPower', 'loadsPower', 'gridConsumptionPower', 'feedinPower', 'batChargePower']
 	}
@@ -52,10 +48,7 @@ def getRealTimeFoxData():
 	return json.loads(response.text)
 
 def getHistoricalFoxData():
-
 	global foxessapi
-	global api_key
-	global serial
 
 	# Find the current month index
 	datetime_now = datetime.now()
@@ -136,9 +129,14 @@ def getHistoricalFoxData():
 		}
 
 
- 	return fox_history_data
+	return fox_history_data
 
-def getfoxData():
+def getfoxData(passed_api_key, passed_serial):
+	global api_key
+	global serial
+	api_key = passed_api_key
+	serial = passed_serial
+	
 	totaldataset = {};
 	totaldataset['realtime'] = getRealTimeFoxData()
 	totaldataset['historical'] = getHistoricalFoxData()
