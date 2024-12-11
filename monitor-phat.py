@@ -18,12 +18,12 @@ inky_display = auto()
 PATH = os.path.dirname(__file__)
 
 # Ripple API Calls
-rippleAPIKey = "Dhz0FgE8pwpJnHCk:YdAJMLZJMTJdF0AkSwkFLUop5BpZ1R7Vai9fNAoSa0M"
+rippleAPIKey = "ADD YOUR RIPPLE API KEY"
 rippleDataset = ripple.getRippleData(rippleAPIKey)
 
 # Fox API Calls
-fox_api_key = "01aa20e3-fc74-4b5b-996c-2ca595c157e5";
-fox_serial = "60BH372028NF062";
+fox_api_key = "ADD YOUR FOX API KEY";
+fox_serial = "ADD YOUR FOX SERIAL";
 foxDataset = fox.getfoxData(fox_api_key, fox_serial)
 
 # Extracting all values and their units into a dictionary
