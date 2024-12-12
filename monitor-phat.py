@@ -62,7 +62,7 @@ threequarter_inkyheight = inkyheight - quarter_inkyheight
 icon_size = 25 # height of icons used
 history_update_size = 20 # size of last update bar
 
-right_section_width = threequarter_inkywidth - icon_size - 2 #where we want the right section border
+right_section_width = threequarter_inkywidth - icon_size + 5 #where we want the right section border
 right_section_icon_position = right_section_width + 1 # where the right section icons go
 right_section_values = right_section_icon_position + icon_size # where the right section values go
 
@@ -157,30 +157,30 @@ draw.text((x, y), battery, inky_display.BLACK, font)
 
 ##################################################
 # BOTTOM LEFT SECTION 
-font = ImageFont.truetype(HankenGroteskBold, 18)
+font = ImageFont.truetype(HankenGroteskBold, 16)
 
 solar_yield = str(int(round(foxDataset['historical']['generation']['day_total'], 1))) + foxDataset['historical']['generation']['unit']
 _, _, w, h = font.getbbox(solar_yield)
 x = icon_size
-y = inkyheight - (history_update_size - 2)  - icon_size
+y = inkyheight - history_update_size - icon_size + (((icon_size - h) / 2) / 2) + 2
 draw.text((x, y), solar_yield, inky_display.BLACK, font)
 
-ripple_yield = rippleDataset['today_saving']['unit'] + str(rippleDataset['today_saving']['value'])
+ripple_yield = rippleDataset['month_savings']['unit'] + str(rippleDataset['month_savings']['value'])
 _, _, w, h = font.getbbox(ripple_yield)
 x = (right_section_width / 2) + icon_size + 5
-y = inkyheight - (history_update_size - 2) - icon_size
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
 
 ##################################################
 # RIGHT SECTION 
 
-font = ImageFont.truetype(HankenGroteskBold, 18)
+font = ImageFont.truetype(HankenGroteskBold, 16)
 
 # PV Power output
 pvpower = str(foxdataDict['pvPower']['value']) + foxdataDict['pvPower']['unit']
 _, _, w, h = font.getbbox(pvpower)
 x = right_section_values
-y = 0
+y = (((icon_size - h) / 2) / 2)
+
 draw.text((x, y), pvpower, inky_display.BLACK, font)
 
 # Grid grid draw
