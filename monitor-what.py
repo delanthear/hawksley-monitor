@@ -273,12 +273,7 @@ y = inkyheight - quarter_inkyheight + (h / 2) + 10
 
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
 
-# current day is excluded from week
-week_total  = float(rippleDataset['week_savings']['value'])
-day_total = float(rippleDataset['today_saving']['value'])
-week_plus_day_total = week_total + day_total
-
-ripple_yield = rippleDataset['week_savings']['unit'] + str(week_plus_day_total)
+ripple_yield = rippleDataset['week_savings']['unit'] + str(rippleDataset['week_savings']['value'])
 _, _, w, h = font.getbbox(ripple_yield)
 x = history_week_center - (w / 2)
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)

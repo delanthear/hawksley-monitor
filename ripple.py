@@ -22,7 +22,7 @@ def getRippleData(apiKey):
         "year_generation": {'value': generationData['this_year']['generated'], 'unit': 'kWh', 'name': 'Year Generation'},
 
         "today_saving": {'value': number_format(generationData['today']['earned'], 2), 'unit': '£', 'name': 'Earnings Today'},
-        "week_savings": {'value': number_format(generationData['this_week']['earned'], 2), 'unit': '£', 'name': 'Weekly Earnings'},
+        "week_savings": {'value': number_format((generationData['today']['earned'] + generationData['this_week']['earned']), 2), 'unit': '£', 'name': 'Weekly Earnings'},
         "month_savings": {'value': number_format((generationData['today']['earned'] + generationData['this_month']['earned']), 2), 'unit': '£', 'name': 'Monthly Earnings'},
         "year_savings": {'value': number_format(generationData['this_year']['earned'], 2), 'unit': '£', 'name': 'Yearly Earnings'}
     }
