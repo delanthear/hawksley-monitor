@@ -27,8 +27,6 @@ fox_api_key = "ADD YOUR FOX API KEY";
 fox_serial = "ADD YOUR FOX SERIAL";
 foxDataset = fox.getfoxData(fox_api_key, fox_serial)
 
-foxDataset = fox.getfoxData()
-
 # Extracting all values and their units into a dictionary
 foxdataDict = {item['variable']: {'value': item['value'], 'unit': item['unit']} 
              for item in foxDataset['realtime']['result'][0]['datas']}
