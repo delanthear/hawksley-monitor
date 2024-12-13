@@ -3,6 +3,7 @@ from inky.auto import auto
 from font_hanken_grotesk import HankenGroteskBold, HankenGroteskMedium
 from datetime import datetime
 
+import json
 import os
 import pprint
 import ripple
@@ -17,13 +18,17 @@ inky_display = auto()
 # Get the current path
 PATH = os.path.dirname(__file__)
 
+CONFIG_FILE = PATH + "/config.json"
+with open(CONFIG_FILE, 'r') as f: 
+	config = json.load(f) 
+
 # Ripple API Calls
-rippleAPIKey = "ADD YOUR RIPPLE API KEY"
+rippleAPIKey = config['rippleAPIKey']
 rippleDataset = ripple.getRippleData(rippleAPIKey)
 
 # Fox API Calls
-fox_api_key = "ADD YOUR FOX API KEY";
-fox_serial = "ADD YOUR FOX SERIAL";
+fox_api_key = config['fox_api_key']
+fox_serial = config['fox_serial']
 foxDataset = fox.getfoxData(fox_api_key, fox_serial)
 
 # Extracting all values and their units into a dictionary
@@ -205,14 +210,35 @@ grid = str(foxdataDict['gridConsumptionPower']['value']) + foxdataDict['gridCons
 _, _, w, h = font.getbbox(grid)
 x = right_section_values
 y = y + icon_size
-draw.text((x, y), grid, inky_display.BLACK, font)
+
+kWh_condition = foxdataDict['gridConsumptionPower']['unit'] == "kWh"
+draw_condition = foxdataDict['gridConsumptionPower']['value'] > 1
+
+if kWh_condition and draw_condition:
+	draw.rectangle((x, y, inkywidth, y+h+1), fill=inky_display.BLACK)
+	color = inky_display.WHITE
+else:
+	color = inky_display.BLACK
+
+draw.text((x, y), grid, color, font)
+
 
 # House draw
 house = str(foxdataDict['loadsPower']['value']) + foxdataDict['loadsPower']['unit']
 _, _, w, h = font.getbbox(house)
 x = right_section_values
 y = y + icon_size
-draw.text((x, y), house, inky_display.BLACK, font)
+
+kWh_condition = foxdataDict['loadsPower']['unit'] == "kWh"
+draw_condition = foxdataDict['loadsPower']['value'] > 1
+
+if kWh_condition and draw_condition:
+	draw.rectangle((x, y, inkywidth, y+h+1), fill=inky_display.BLACK)
+	color = inky_display.WHITE
+else:
+	color = inky_display.BLACK
+
+draw.text((x, y), house, color, font)
 
 # Windspeed
 wind = str(int(round(float(rippleDataset['latest_wind_speed']['value']), 0))) + rippleDataset['latest_wind_speed']['unit']
