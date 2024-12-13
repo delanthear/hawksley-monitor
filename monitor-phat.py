@@ -120,18 +120,35 @@ sun_icon_filename = icons_path + "icon-sun-bw.png"
 windspeed_icon_filename = icons_path + "icon-wind-bw.png"
 usage_icon_filename = icons_path + "house-usage-bw.png"
 export_icon_filename = icons_path + "power-export-bw.png"
+battery_charging_icon_filename = icons_path + "battery-charging-bw.png"
 
-# Is the battery charging? Select the appropriate icon
-if int(foxdataDict['batChargePower']['value']) > 0:
-	battery_icon_filename = icons_path + "battery-charging-bw.png"
-else:
-	battery_icon_filename = icons_path + "battery-draining-bw.png"
+# select the right battery icon for the level
+
+bat_level = "10"
+
+if int(foxdataDict['SoC']['value']) >= 100:
+	bat_level = "100"
+elif int(foxdataDict['SoC']['value']) >= 90:
+	bat_level = "90"
+elif int(foxdataDict['SoC']['value']) >= 75:
+	bat_level = "75"
+elif int(foxdataDict['SoC']['value']) >= 50:
+	bat_level = "50"
+elif int(foxdataDict['SoC']['value']) >= 25:
+	bat_level = "25"
+
+battery_draining_filename = icons_path + "battery-draining-" + bat_level + "-bw.png"
 
 masks = {}
 
-icon_dictionary = [battery_icon_filename, sun_icon_filename, house_icon_filename, usage_icon_filename, windspeed_icon_filename, solar_icon_filename, wind_icon_filename]
+icon_dictionary = [battery_draining_filename, sun_icon_filename, house_icon_filename, usage_icon_filename, windspeed_icon_filename, solar_icon_filename, wind_icon_filename]
 
 icon_positions = [(0,0), (int(right_section_icon_position), 0), (int(right_section_icon_position), icon_size), (int(right_section_icon_position), icon_size * 2), (int(right_section_icon_position), icon_size * 3), (0, int(inkyheight) - history_update_size - icon_size), (int((right_section_width / 2) + 5), int(inkyheight) - history_update_size - icon_size)]
+
+# Is the battery charging? Add the appropriate icon
+if int(foxdataDict['batChargePower']['value']) > 0:
+	icon_dictionary.append(battery_charging_icon_filename)
+	icon_positions.append((0, int(inkyheight) - history_update_size - (icon_size * 2)))
 
 # Are we feeding in? Add the icon.
 if int(foxdataDict['feedinPower']['value']) > 0:
