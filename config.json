@@ -1,5 +1,11 @@
 {
-	"rippleAPIKey": "ADD YOUR RIPPLE API KEY", 
-	"fox_api_key": "ADD YOUR FOX API KEY", 
-	"fox_serial": "ADD YOUR FOX SERIAL" 
+	"rippleAPIKey": "ADD YOUR RIPPLE API KEY",
+	"fox_api_key": "ADD YOUR FOX API KEY",
+	"fox_serial": "ADD YOUR FOX SERIAL"
+
+	"houseloadlimit": "1",
+	"houseloadlimitunit": "kWh",
+	"gridloadlimit": "1",
+	"gridloadlimitunit": "kWh",
+	"batterylimit": "6"
 }

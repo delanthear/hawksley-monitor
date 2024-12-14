@@ -3,6 +3,7 @@ from inky.auto import auto
 from font_hanken_grotesk import HankenGroteskBold, HankenGroteskMedium
 from datetime import datetime
 
+import json
 import os
 import pprint
 import ripple
@@ -18,13 +19,17 @@ inky_display.set_border(inky_display.RED)
 # Get the current path
 PATH = os.path.dirname(__file__)
 
+CONFIG_FILE = PATH + "/config.json"
+with open(CONFIG_FILE, 'r') as f: 
+	config = json.load(f) 
+
 # Ripple API Calls
-rippleAPIKey = "ADD YOUR RIPPLE API KEY"
+rippleAPIKey = config['rippleAPIKey']
 rippleDataset = ripple.getRippleData(rippleAPIKey)
 
 # Fox API Calls
-fox_api_key = "ADD YOUR FOX API KEY";
-fox_serial = "ADD YOUR FOX SERIAL";
+fox_api_key = config['fox_api_key']
+fox_serial = config['fox_serial']
 foxDataset = fox.getfoxData(fox_api_key, fox_serial)
 
 # Extracting all values and their units into a dictionary
@@ -78,6 +83,7 @@ linecolor = inky_display.RED
 
 # history column heights and widths
 history_icon_edge = 40
+icon_size = 35 # height of icons used
 history_update_size = 20
 history_headings_size = 20
 history_headings_top = half_inkyheight + 20
@@ -127,33 +133,67 @@ def create_mask(source, mask=(inky_display.WHITE, inky_display.BLACK, inky_displ
 
 icons_path = PATH + "/resources/"
 
-solar_icon_filename = icons_path + "solar-gen.png"
-wind_icon_filename = icons_path + "wind-gen.png"
-house_icon_filename = icons_path + "house-load.png"
-sun_icon_filename = icons_path + "icon-sun.png"
-windspeed_icon_filename = icons_path + "icon-wind.png"
-usage_icon_filename = icons_path + "house-usage.png"
-export_icon_filename = icons_path + "power-export.png"
+solar_icon_filename = icons_path + "solar-gen-bw.png"
+wind_icon_filename = icons_path + "wind-gen-bw.png"
+sun_icon_filename = icons_path + "icon-sun-bw.png"
+windspeed_icon_filename = icons_path + "icon-wind-bw.png"
+export_icon_filename = icons_path + "power-export-bw.png"
+battery_charging_icon_filename = icons_path + "battery-charging-bw.png"
 
-# Is the battery charging? Select the appropriate icon
-if int(foxdataDict['batChargePower']['value']) > 0:
-	battery_icon_filename = icons_path + "battery-charging.png"
+kWh_condition = foxdataDict['gridConsumptionPower']['unit'] == config['gridloadlimitunit']
+draw_condition = foxdataDict['gridConsumptionPower']['value'] > int(config['gridloadlimit'])
+
+if kWh_condition and draw_condition:
+	house_icon_filename = icons_path + "house-load.png"
 else:
-	battery_icon_filename = icons_path + "battery-draining.png"
+	house_icon_filename = icons_path + "house-load-bw.png"
+
+kWh_condition = foxdataDict['loadsPower']['unit'] == config['houseloadlimitunit']
+draw_condition = foxdataDict['loadsPower']['value'] > int(config['houseloadlimit'])
+if kWh_condition and draw_condition:
+	usage_icon_filename = icons_path + "house-usage.png"
+else:
+	usage_icon_filename = icons_path + "house-usage-bw.png"
+
+# select the right battery icon for the level
+
+bat_level = "10"
+
+if int(foxdataDict['SoC']['value']) >= 100:
+	bat_level = "100-bw"
+elif int(foxdataDict['SoC']['value']) >= 90:
+	bat_level = "90-bw"
+elif int(foxdataDict['SoC']['value']) >= 75:
+	bat_level = "75-bw"
+elif int(foxdataDict['SoC']['value']) >= 50:
+	bat_level = "50-bw"
+elif int(foxdataDict['SoC']['value']) >= 25:
+	bat_level = "25"
+
+battery_draining_filename = icons_path + "battery-draining-" + bat_level  + ".png"
 
 masks = {}
 
-icon_dictionary = [solar_icon_filename, wind_icon_filename, battery_icon_filename, house_icon_filename, sun_icon_filename, windspeed_icon_filename, usage_icon_filename]
+icon_dictionary = [solar_icon_filename, wind_icon_filename, battery_draining_filename, house_icon_filename, sun_icon_filename, windspeed_icon_filename, usage_icon_filename]
 icon_positions = [(2, int(history_data_top) + 5), (2, int(history_data_middle) + 5), (0,1), (int(half_inkywidth) + 1, 1), (int(half_inkywidth) + 1, int(quarter_inkyheight)+11), (int(threequarter_inkywidth)+1, int(quarter_inkyheight)+11), (int(threequarter_inkywidth + 1), 1)]
 
-# Are we feeing in? Add the icon.
+
+# Is the battery charging? Add the appropriate icon
+if int(foxdataDict['batChargePower']['value']) > 0:
+	icon_dictionary.append(battery_charging_icon_filename)
+	icon_positions.append((0, int(history_data_top - (icon_size * 2))))
+
+icon_dictionary.append(battery_charging_icon_filename)
+icon_positions.append((0, int(history_data_top - (icon_size * 2))))
+
+# Are we feeding in? Add the icon.
 if int(foxdataDict['feedinPower']['value']) > 0:
 	icon_dictionary.append(export_icon_filename)
 	icon_positions.append((int(half_inkywidth - 36), 2))
 
 # Load and place multiple icons
 for icon_path, position in zip(icon_dictionary, icon_positions):
-    icon = Image.open(icon_path).resize((35, 35))  # Resize icons if necessary
+    icon = Image.open(icon_path).resize((icon_size, icon_size))  # Resize icons if necessary
     img.paste(icon, position, create_mask(icon))
 
 ##################################################
@@ -166,8 +206,8 @@ _, _, w, batth = font.getbbox(battery)
 x = quarter_inkywidth - (w / 2)
 y = quarter_inkyheight - (batth / 2) +  5
 
-if foxdataDict['SoC']['value'] < 5:
-	draw.rectangle((0, 0, half_inkywidth, half_inkyheight + 20), fill=inky_display.RED)
+if foxdataDict['SoC']['value'] < int(config['batterylimit']):
+	draw.rectangle((icon_size, 0 + icon_size, half_inkywidth - icon_size, half_inkyheight + 20 - icon_size), fill=inky_display.RED)
 	color = inky_display.WHITE
 else:
 	color = inky_display.BLACK
@@ -186,11 +226,30 @@ pvpower = str(foxdataDict['pvPower']['value']) + foxdataDict['pvPower']['unit']
 _, _, w, gridh = font.getbbox(grid)
 x = history_month_center - (w / 2)
 y = 40
-draw.text((x, y), grid, inky_display.BLACK, font)
+
+kWh_condition = foxdataDict['gridConsumptionPower']['unit'] == config['gridloadlimitunit']
+draw_condition = foxdataDict['gridConsumptionPower']['value'] >  int(config['gridloadlimit'])
+
+if kWh_condition and draw_condition:
+	draw.rectangle((half_inkywidth, 38, threequarter_inkywidth, 40+gridh+3), fill=inky_display.RED)
+	color = inky_display.WHITE
+else:
+	color = inky_display.BLACK
+draw.text((x, y), grid, color, font)
 
 _, _, w, househ = font.getbbox(house)
 x = history_year_center - (w / 2)
-draw.text((x, y), house, inky_display.BLACK, font)
+
+kWh_condition = foxdataDict['loadsPower']['unit'] == config['houseloadlimitunit']
+draw_condition = foxdataDict['loadsPower']['value'] >  int(config['houseloadlimit'])
+
+if kWh_condition and draw_condition:
+	draw.rectangle((threequarter_inkywidth, 38, inkywidth, 40+househ+3), fill=inky_display.RED)
+	color = inky_display.WHITE
+else:
+	color = inky_display.BLACK
+
+draw.text((x, y), house, color, font)
 
 _, _, w, househ = font.getbbox(pvpower)
 x = history_month_center - (w / 2)
