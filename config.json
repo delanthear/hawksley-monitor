@@ -4,8 +4,8 @@
 	"fox_serial": "ADD YOUR FOX SERIAL"
 
 	"houseloadlimit": "1",
-	"houseloadlimitunit": "kWh",
+	"houseloadlimitunit": "kW",
 	"gridloadlimit": "1",
-	"gridloadlimitunit": "kWh",
+	"gridloadlimitunit": "kW",
 	"batterylimit": "6"
 }
