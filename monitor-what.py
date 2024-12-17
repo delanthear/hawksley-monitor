@@ -183,9 +183,6 @@ if int(foxdataDict['batChargePower']['value']) > 0:
 	icon_dictionary.append(battery_charging_icon_filename)
 	icon_positions.append((0, int(history_data_top - (icon_size * 2))))
 
-icon_dictionary.append(battery_charging_icon_filename)
-icon_positions.append((0, int(history_data_top - (icon_size * 2))))
-
 # Are we feeding in? Add the icon.
 if int(foxdataDict['feedinPower']['value']) > 0:
 	icon_dictionary.append(export_icon_filename)
