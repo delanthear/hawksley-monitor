@@ -175,7 +175,14 @@ battery = str(int(foxdataDict['SoC']['value'])) + foxdataDict['SoC']['unit']
 _, _, w, h = font.getbbox(battery)
 x = (right_section_width / 2) - (w / 2)
 y = ((inkyheight - 60) / 2) - (h / 2)
-draw.text((x, y), battery, inky_display.BLACK, font)
+
+if foxdataDict['SoC']['value'] < int(config['batterylimit']):
+	draw.rectangle((icon_size, 0 + (icon_size / 3), right_section_width - icon_size, int(inkyheight) - history_update_size - (icon_size * 1.5)), fill=inky_display.BLACK)
+	color = inky_display.WHITE
+else:
+	color = inky_display.BLACK
+
+draw.text((x, y), battery, color, font)
 
 ##################################################
 # BOTTOM LEFT SECTION 
@@ -211,11 +218,11 @@ _, _, w, h = font.getbbox(grid)
 x = right_section_values
 y = y + icon_size
 
-kWh_condition = foxdataDict['gridConsumptionPower']['unit'] == "kWh"
-draw_condition = foxdataDict['gridConsumptionPower']['value'] > 1
+kWh_condition = foxdataDict['gridConsumptionPower']['unit'] == config['gridloadlimitunit']
+draw_condition = foxdataDict['gridConsumptionPower']['value'] > int(config['gridloadlimit'])
 
 if kWh_condition and draw_condition:
-	draw.rectangle((x, y, inkywidth, y+h+1), fill=inky_display.BLACK)
+	draw.rectangle((x, y-1, inkywidth, y+h+2), fill=inky_display.BLACK)
 	color = inky_display.WHITE
 else:
 	color = inky_display.BLACK
@@ -229,11 +236,11 @@ _, _, w, h = font.getbbox(house)
 x = right_section_values
 y = y + icon_size
 
-kWh_condition = foxdataDict['loadsPower']['unit'] == "kWh"
-draw_condition = foxdataDict['loadsPower']['value'] > 1
+kWh_condition = foxdataDict['loadsPower']['unit'] == config['houseloadlimitunit']
+draw_condition = foxdataDict['loadsPower']['value'] > int(config['houseloadlimit'])
 
 if kWh_condition and draw_condition:
-	draw.rectangle((x, y, inkywidth, y+h+1), fill=inky_display.BLACK)
+	draw.rectangle((x, y-1, inkywidth, y+h+2), fill=inky_display.BLACK)
 	color = inky_display.WHITE
 else:
 	color = inky_display.BLACK
