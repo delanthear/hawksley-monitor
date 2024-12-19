@@ -153,7 +153,7 @@ icon_positions = [(0,0), (int(right_section_icon_position), 0), (int(right_secti
 # Is the battery charging? Add the appropriate icon
 if int(foxdataDict['batChargePower']['value']) > 0:
 	icon_dictionary.append(battery_charging_icon_filename)
-	icon_positions.append((0, int(inkyheight) - history_update_size - (icon_size * 2)))
+	icon_positions.append((0, int(inkyheight) - 5 - history_update_size - (icon_size * 2)))
 
 # Are we feeding in? Add the icon.
 if int(foxdataDict['feedinPower']['value']) > 0:
