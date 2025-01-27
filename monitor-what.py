@@ -8,6 +8,7 @@ import os
 import pprint
 import ripple
 import fox
+import gotify
 
 # set to output data structures
 debug = 0
@@ -50,6 +51,29 @@ for variable, data in foxdataDict.items():
 if debug:
 	pprint.pprint(rippleDataset)
 	pprint.pprint(foxdataDict)
+
+####################
+#
+# Gotify Notications
+#
+if 'gotifytoken' in config and config['gotifytoken']:
+	
+	currentBattery = float(foxdataDict['SoC']['value'])
+	currentGen = float(foxdataDict['pvPower']['value'])
+
+	# if the sun is shining and we've battery, tell the world!
+	if currentBattery >= float(config['gotifybatterylimit']) and currentGen >= float(config['gotifysunlimit']):
+		title = "The Sun is shining!";
+		message = "FYI, the battery is at " + currentBattery + "% and we are generating " + currentGen + foxdataDict['pvPower']['unit'];
+		priority = "5";
+
+		gotifyResponse = gotify.sendGotifyMessage(config['gotifytoken'], config['gotifyurl'], title, message, priority)
+
+		if debug:
+			pprint.pprint(gotifyResponse)
+
+#
+####################
 
 img = Image.new("P", inky_display.resolution)
 draw = ImageDraw.Draw(img)

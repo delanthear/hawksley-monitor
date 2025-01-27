@@ -8,4 +8,9 @@
 	"gridloadlimit": "1",
 	"gridloadlimitunit": "kW",
 	"batterylimit": "6"
+
+	"gotifytoken": "",
+	"gotifyurl": "",
+	"gotifybatterylimit": "40",
+	"gotifysunlimit": "1"
 }
