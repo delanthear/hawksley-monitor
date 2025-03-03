@@ -201,11 +201,24 @@ masks = {}
 icon_dictionary = [solar_icon_filename, wind_icon_filename, battery_draining_filename, house_icon_filename, sun_icon_filename, windspeed_icon_filename, usage_icon_filename]
 icon_positions = [(2, int(history_data_top) + 5), (2, int(history_data_middle) + 5), (0,1), (int(half_inkywidth) + 1, 1), (int(half_inkywidth) + 1, int(quarter_inkyheight)+11), (int(threequarter_inkywidth)+1, int(quarter_inkyheight)+11), (int(threequarter_inkywidth + 1), 1)]
 
-
 # Is the battery charging? Add the appropriate icon
 if int(foxdataDict['batChargePower']['value']) > 0:
 	icon_dictionary.append(battery_charging_icon_filename)
-	icon_positions.append((0, int(history_data_top - (icon_size * 2))))
+	icon_positions.append((0, int(history_data_top - (icon_size * 2) + 5)))
+
+	font = ImageFont.truetype(HankenGroteskBold, 14)
+	batteryCharge = str(int(foxdataDict['batChargePower']['value'])) + foxdataDict['batChargePower']['unit']
+	batteryCharge = "+" + batteryCharge
+	
+	feedinCharge  = str(int(foxdataDict['feedinPower']['value'])) + foxdataDict['feedinPower']['unit']
+	feedinCharge = " / " + feedinCharge + " feed in"
+	
+	batteryCharge = batteryCharge + feedinCharge
+	_, _, w, h = font.getbbox(batteryCharge)
+	x = icon_size + 5
+	y = (inkyheight / 2) - 3
+	color = inky_display.BLACK
+	draw.text((x, y), batteryCharge, color, font)
 
 # Are we feeding in? Add the icon.
 if int(foxdataDict['feedinPower']['value']) > 0:
