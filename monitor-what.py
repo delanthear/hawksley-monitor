@@ -63,11 +63,24 @@ if 'gotifytoken' in config and config['gotifytoken']:
 
 	# if the sun is shining and we've battery, tell the world!
 	if currentBattery >= float(config['gotifybatterylimit']) and currentGen >= float(config['gotifysunlimit']):
+		key = "firstlimit";
 		title = "The Sun is shining!";
-		message = "FYI, the battery is at " + currentBattery + "% and we are generating " + currentGen + foxdataDict['pvPower']['unit'];
+		message = "FYI, the battery is at " + str(currentBattery) + "% and we are generating " + str(currentGen) + foxdataDict['pvPower']['unit'];
 		priority = "5";
 
-		gotifyResponse = gotify.sendGotifyMessage(config['gotifytoken'], config['gotifyurl'], title, message, priority)
+		gotifyResponse = gotify.sendGotifyMessage(config['gotifytoken'], config['gotifyurl'], key, title, message, priority)
+
+		if debug:
+			pprint.pprint(gotifyResponse)
+
+	# if we're at max battery, tell the world!
+	if currentBattery >= float(config['gotifybatterymax']):
+		key = "maxbattery";
+		title = "The Battery is maxed!";
+		message = "FYI, the battery is at " + str(currentBattery) + "% and we are generating " + str(currentGen) + foxdataDict['pvPower']['unit'];
+		priority = "5";
+
+		gotifyResponse = gotify.sendGotifyMessage(config['gotifytoken'], config['gotifyurl'], key, title, message, priority)
 
 		if debug:
 			pprint.pprint(gotifyResponse)
