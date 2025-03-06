@@ -12,5 +12,6 @@
 	"gotifytoken": "",
 	"gotifyurl": "",
 	"gotifybatterylimit": "40",
-	"gotifysunlimit": "1"
+	"gotifysunlimit": "1",
+	"gotifybatterymax": "95"
 }
