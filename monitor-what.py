@@ -384,3 +384,4 @@ inky_display.show()
 logentry =  "Finished running monitor: " + formatted_last_update
 print(logentry)
 
+

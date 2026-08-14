@@ -14,3 +14,7 @@ A set of Python scripts for pulling solar data from FoxESS and Ripple API and di
 5. If all works, cron it up so it updates to your taste.
 
 Remember, the data isn't realtime and your Inky has a lifespan so updating too frequently will expire it!  Don't be overzealous
+
+## Notes
+Since the faiure of Ripple, I've updated the ripple code to talk to the Kirk Hill Dashboard instead. If anyone out there has access to any of the other dashboards, let me know and I'll try and add code for them too
+
