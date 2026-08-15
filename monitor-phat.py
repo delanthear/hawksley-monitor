@@ -8,9 +8,10 @@ import os
 import pprint
 import ripple
 import fox
+import gotify
 
 # set to output data structures
-debug = 0
+debug = 1
 
 # initialise the display
 inky_display = auto()
@@ -19,8 +20,8 @@ inky_display = auto()
 PATH = os.path.dirname(__file__)
 
 CONFIG_FILE = PATH + "/config.json"
-with open(CONFIG_FILE, 'r') as f: 
-	config = json.load(f) 
+with open(CONFIG_FILE, 'r') as f:
+    config = json.load(f)
 
 # Ripple API Calls
 rippleAPIKey = config['rippleAPIKey']
@@ -32,23 +33,23 @@ fox_serial = config['fox_serial']
 foxDataset = fox.getfoxData(fox_api_key, fox_serial)
 
 # Extracting all values and their units into a dictionary
-foxdataDict = {item['variable']: {'value': item['value'], 'unit': item['unit']} 
+foxdataDict = {item['variable']: {'value': item['value'], 'unit': item['unit']}
              for item in foxDataset['realtime']['result'][0]['datas']}
 
 # Iterate over the dictionary and adjust the values and units if needed
 for variable, data in foxdataDict.items():
-	# Only convert if the value is less than 1
-	if data['value'] < 1:
-		if data['unit'] == 'kW':
-			data['value'] *= 1000  # Convert kW to W
-			data['unit'] = 'W'     # Change the unit to W
-			data['value'] = int(round(data['value'], 0))  # Round to 0 decimal places if unit is W
-	elif data['unit'] == 'kW':
-		data['value'] = round(data['value'], 2)  # Round to 2 decimal places if unit stays kW
+    # Only convert if the value is less than 1
+    if data['value'] < 1:
+        if data['unit'] == 'kW':
+            data['value'] *= 1000  # Convert kW to W
+            data['unit'] = 'W'     # Change the unit to W
+            data['value'] = int(round(data['value'], 0))  # Round to 0 decimal places if unit is W
+    elif data['unit'] == 'kW':
+        data['value'] = round(data['value'], 2)  # Round to 2 decimal places if unit stays kW
 
 if debug:
-	pprint.pprint(rippleDataset)
-	pprint.pprint(foxdataDict)
+    pprint.pprint(rippleDataset)
+    pprint.pprint(foxdataDict)
 
 img = Image.new("P", (inky_display.WIDTH, inky_display.HEIGHT))
 draw = ImageDraw.Draw(img)
@@ -148,7 +149,7 @@ masks = {}
 
 icon_dictionary = [battery_draining_filename, sun_icon_filename, house_icon_filename, usage_icon_filename, windspeed_icon_filename, solar_icon_filename, wind_icon_filename]
 
-icon_positions = [(0,0), (int(right_section_icon_position), 0), (int(right_section_icon_position), icon_size), (int(right_section_icon_position), icon_size * 2), (int(right_section_icon_position), icon_size * 3), (0, int(inkyheight) - history_update_size - icon_size), (int((right_section_width / 2) + 5), int(inkyheight) - history_update_size - icon_size)]
+icon_positions = [(0,0), (int(right_section_icon_position), 0), (int(right_section_icon_position), icon_size), (int(right_section_icon_position), icon_size * 2), (int(right_section_icon_position), icon_size * 3), (0, int(inkyheight) - history_update_size - icon_size), (int((right_section_width / 2)), int(inkyheight) - history_update_size - icon_size)]
 
 # Is the battery charging? Add the appropriate icon
 if int(foxdataDict['batChargePower']['value']) > 0:
@@ -158,10 +159,10 @@ if int(foxdataDict['batChargePower']['value']) > 0:
 	font = ImageFont.truetype(HankenGroteskBold, 12)
 	batteryCharge = str(int(foxdataDict['batChargePower']['value'])) + foxdataDict['batChargePower']['unit']
 	batteryCharge = "+" + batteryCharge
-	
+
 	feedinCharge  = str(int(foxdataDict['feedinPower']['value'])) + foxdataDict['feedinPower']['unit']
 	feedinCharge = " / " + feedinCharge + " feed in"
-	
+
 	batteryCharge = batteryCharge + feedinCharge
 	_, _, w, h = font.getbbox(batteryCharge)
 	x = 23
@@ -181,7 +182,7 @@ for icon_path, position in zip(icon_dictionary, icon_positions):
 
 
 ##################################################
-# LEFT SECTION 
+# LEFT SECTION
 
 font = ImageFont.truetype(HankenGroteskBold, 44)
 battery = str(int(foxdataDict['SoC']['value'])) + foxdataDict['SoC']['unit']
@@ -199,22 +200,23 @@ else:
 draw.text((x, y), battery, color, font)
 
 ##################################################
-# BOTTOM LEFT SECTION 
-font = ImageFont.truetype(HankenGroteskBold, 16)
+# BOTTOM LEFT SECTION
+font = ImageFont.truetype(HankenGroteskBold, 14)
 
-solar_yield = str(int(round(foxDataset['historical']['generation']['day_total'], 1))) + foxDataset['historical']['generation']['unit']
+solar_yield = str(round(foxDataset['historical']['PVEnergyTotal']['day_total'], 2)) + foxDataset['historical']['PVEnergyTotal']['unit']
 _, _, w, h = font.getbbox(solar_yield)
 x = icon_size
-y = inkyheight - history_update_size - icon_size + (((icon_size - h) / 2) / 2) + 2
+y = inkyheight - history_update_size - icon_size + (((icon_size - h) / 2) / 2) + 4
 draw.text((x, y), solar_yield, inky_display.BLACK, font)
 
-ripple_yield = rippleDataset['month_savings']['unit'] + str(rippleDataset['month_savings']['value'])
+ripple_yield = str(round(float(rippleDataset['today_generation']['value']),1)) + rippleDataset['today_generation']['unit']
+
 _, _, w, h = font.getbbox(ripple_yield)
-x = (right_section_width / 2) + icon_size + 5
+x = (right_section_width / 2) + icon_size + 2
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
 
 ##################################################
-# RIGHT SECTION 
+# RIGHT SECTION
 
 font = ImageFont.truetype(HankenGroteskBold, 16)
 
@@ -291,7 +293,3 @@ inky_display.show()
 
 logentry =  "Finished running monitor: " + formatted_last_update
 print(logentry)
-
-
-
-
