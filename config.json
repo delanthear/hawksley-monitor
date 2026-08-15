@@ -2,10 +2,15 @@
 	"rippleAPIKey": "ADD YOUR RIPPLE API KEY",
 	"fox_api_key": "ADD YOUR FOX API KEY",
 	"fox_serial": "ADD YOUR FOX SERIAL"
-
 	"houseloadlimit": "1",
 	"houseloadlimitunit": "kW",
 	"gridloadlimit": "1",
 	"gridloadlimitunit": "kW",
 	"batterylimit": "6"
+
+	"gotifytoken": "ADD YOUR GOTIFY TOKEN",
+	"gotifyurl": "ADD YOUR GOTIFY URL",
+	"gotifybatterylimit": "35",
+	"gotifysunlimit": "500",
+	"gotifybatterymax": "95"
 }
