@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 import pprint
 import json
-import requests 
+import requests
 from requests.auth import HTTPBasicAuth
 
 last_call = {}          # timestamp of the last call for a given path
@@ -41,7 +41,6 @@ def getRealTimeFoxData():
 			'variables': ['SoC', 'pvPower', 'loadsPower', 'gridConsumptionPower', 'feedinPower', 'batChargePower']
 	}
 
-	# post_query = { 'sn': serial }
 	headers = signed_header(path)
 	response = requests.post(foxessapi + path, headers=headers, json=post_query)
 
@@ -65,7 +64,7 @@ def getHistoricalFoxData():
 		'sn': serial,
 		'year': year,
 		'dimension': 'year',
-		'variables':  ["generation","feedin","gridConsumption"]
+		'variables':  ["feedin","gridConsumption", "PVEnergyTotal"]
 	}
 
 	response = requests.post(foxessapi + path, headers=headers, json=post_query)
@@ -80,7 +79,7 @@ def getHistoricalFoxData():
 		'month': month,
 		'day': day,
 		'dimension': 'day',
-		'variables': ["generation", "feedin", "gridConsumption"]
+		'variables': ["feedin", "gridConsumption", "PVEnergyTotal"]
 	}
 
 	response = requests.post(foxessapi + path, headers=headers, json=post_query)
@@ -112,7 +111,7 @@ def getHistoricalFoxData():
 
 		# Determine the name based on the label
 		name = ""
-		if label == "generation":
+		if label == "PVEnergyTotal":
 			name = "Solar Generation"
 		elif label == "feedin":
 			name = "Feed In"
@@ -136,13 +135,18 @@ def getfoxData(passed_api_key, passed_serial):
 	global serial
 	api_key = passed_api_key
 	serial = passed_serial
-	
+
 	totaldataset = {};
 	totaldataset['realtime'] = getRealTimeFoxData()
 	totaldataset['historical'] = getHistoricalFoxData()
 	return(totaldataset);
 
-# Uncomment this lines to be able to run the script on it's own
+# Uncomment these lines to be able to run the script on it's own and pass in.
 
-# dataset = getfoxData()
-# pprint.pprint(dataset)
+
+# Add your serial and key
+#fox_api = ""
+#fox_serial = ""
+
+#dataset = getfoxData(fox_api, fox_serial)
+#pprint.pprint(dataset)

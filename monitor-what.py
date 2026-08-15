@@ -8,9 +8,10 @@ import os
 import pprint
 import ripple
 import fox
+import gotify
 
 # set to output data structures
-debug = 0
+debug = 1
 
 # initialise the display
 inky_display = auto()
@@ -20,8 +21,8 @@ inky_display.set_border(inky_display.RED)
 PATH = os.path.dirname(__file__)
 
 CONFIG_FILE = PATH + "/config.json"
-with open(CONFIG_FILE, 'r') as f: 
-	config = json.load(f) 
+with open(CONFIG_FILE, 'r') as f:
+	config = json.load(f)
 
 # Ripple API Calls
 rippleAPIKey = config['rippleAPIKey']
@@ -46,10 +47,56 @@ for variable, data in foxdataDict.items():
             data['value'] = int(round(data['value'], 0))  # Round to 0 decimal places if unit is W
     elif data['unit'] == 'kW':
             data['value'] = round(data['value'], 2)  # Round to 2 decimal places if unit stays kW
- 
+
 if debug:
 	pprint.pprint(rippleDataset)
 	pprint.pprint(foxdataDict)
+
+####################
+#
+# Gotify Notications
+
+
+if 'gotifytoken' in config and config['gotifytoken']:
+
+	currentBattery = float(foxdataDict['SoC']['value'])
+	currentGen = float(foxdataDict['pvPower']['value'])
+	currentGenUnit = str(foxdataDict['pvPower']['unit'])
+
+	if currentGenUnit == "kW":
+		currentGen = currentGen * 1000
+
+	# if the sun is shining and we've battery, tell the world!
+	if debug:
+		debugMsg = "currentBattery: " + str(currentBattery) + "%  limit is " + str(config['gotifybatterylimit']) + "%"
+		debugMsg = debugMsg + "\n currentGen: " + str(currentGen) + " genLimit: " + str(config['gotifysunlimit'])
+		pprint.pprint(debugMsg)
+
+	if currentBattery >= float(config['gotifybatterylimit']) and currentGen >= float(config['gotifysunlimit']):
+		key = "firstlimit";
+		title = "The Sun is shining!";
+		message = "FYI, the battery is at " + str(currentBattery) + "% and we are generating " + str(currentGen) + foxdataDict['pvPower']['unit'];
+		priority = "5";
+
+		gotifyResponse = gotify.sendGotifyMessage(config['gotifytoken'], config['gotifyurl'], key, title, message, priority)
+
+		if debug:
+			pprint.pprint(gotifyResponse)
+
+	# if we're at max battery, tell the world!
+	if currentBattery >= float(config['gotifybatterymax']):
+		key = "maxbattery";
+		title = "The Battery is maxed!";
+		message = "FYI, the battery is at " + str(currentBattery) + "% and we are generating " + str(currentGen) + foxdataDict['pvPower']['unit'];
+		priority = "5";
+
+		gotifyResponse = gotify.sendGotifyMessage(config['gotifytoken'], config['gotifyurl'], key, title, message, priority)
+
+		if debug:
+			pprint.pprint(gotifyResponse)
+
+#
+####################
 
 img = Image.new("P", inky_display.resolution)
 draw = ImageDraw.Draw(img)
@@ -185,10 +232,10 @@ if int(foxdataDict['batChargePower']['value']) > 0:
 	font = ImageFont.truetype(HankenGroteskBold, 14)
 	batteryCharge = str(int(foxdataDict['batChargePower']['value'])) + foxdataDict['batChargePower']['unit']
 	batteryCharge = "+" + batteryCharge
-	
+
 	feedinCharge  = str(int(foxdataDict['feedinPower']['value'])) + foxdataDict['feedinPower']['unit']
 	feedinCharge = " / " + feedinCharge + " feed in"
-	
+
 	batteryCharge = batteryCharge + feedinCharge
 	_, _, w, h = font.getbbox(batteryCharge)
 	x = icon_size + 5
@@ -226,7 +273,7 @@ draw.text((x, y), battery, color, font)
 
 
 ##################################################
-# RIGHT SECTION 
+# RIGHT SECTION
 font = ImageFont.truetype(HankenGroteskMedium, 22)
 
 grid = str(foxdataDict['gridConsumptionPower']['value']) + foxdataDict['gridConsumptionPower']['unit']
@@ -277,17 +324,23 @@ draw.text((x, y), wind, inky_display.BLACK, font)
 # HISTORICALS
 
 # Column centers
-history_datawidth = inkywidth - 40 
+history_datawidth = inkywidth - 40
 day_center = (history_datawidth / 4) + 40
- 
+
 # headings
 
 if debug:
-	pprint.pprint(foxDataset['historical']['generation'])
+	pprint.pprint(foxDataset['historical']['PVEnergyTotal'])
 
 # headings
 
 font = ImageFont.truetype(HankenGroteskBold, 18)
+
+heading = "kWh"
+_, _, w, h = font.getbbox(heading)
+x = 0
+y = half_inkyheight + 20
+draw.text((x, y), heading, inky_display.BLACK, font)
 
 heading = "Day"
 _, _, w, h = font.getbbox(heading)
@@ -312,47 +365,47 @@ draw.text((x, y), heading, inky_display.BLACK, font)
 
 
 
-font = ImageFont.truetype(HankenGroteskBold, 22)
+font = ImageFont.truetype(HankenGroteskBold, 20)
 
 solar_history_height = int(half_inkyheight + 40)
 wind_history_height = int(inkyheight - quarter_inkyheight + 10)
 
 
 
-solar_yield = str(int(round(foxDataset['historical']['generation']['day_total'], 0))) + foxDataset['historical']['generation']['unit']
+solar_yield = str(round(foxDataset['historical']['PVEnergyTotal']['day_total'], 2))
 _, _, w, h = font.getbbox(solar_yield)
 x = history_day_center - (w / 2)
 y = half_inkyheight + (h / 2) + 40
 draw.text((x, y), solar_yield, inky_display.BLACK, font)
 
-solar_yield = str(int(round(foxDataset['historical']['generation']['month_total'], 0))) + foxDataset['historical']['generation']['unit']
+solar_yield = str(int(round(foxDataset['historical']['PVEnergyTotal']['month_total'], 0)))
 _, _, w, h = font.getbbox(solar_yield)
 x = history_month_center - (w / 2)
 draw.text((x, y), solar_yield, inky_display.BLACK, font)
 
-solar_yield = str(int(round(foxDataset['historical']['generation']['year_total'], 0))) + foxDataset['historical']['generation']['unit']
+solar_yield = str(int(round(foxDataset['historical']['PVEnergyTotal']['year_total'], 0)))
 _, _, w, solaryh = font.getbbox(solar_yield)
 x = history_year_center - (w / 2)
 draw.text((x, y), solar_yield, inky_display.BLACK, font)
 
-ripple_yield = rippleDataset['today_saving']['unit'] + str(rippleDataset['today_saving']['value'])
+ripple_yield = str(rippleDataset['today_generation']['value'])
 _, _, w, h = font.getbbox(ripple_yield)
 x = history_day_center - (w / 2)
 y = inkyheight - quarter_inkyheight + (h / 2) + 10
 
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
 
-ripple_yield = rippleDataset['week_savings']['unit'] + str(rippleDataset['week_savings']['value'])
+ripple_yield = str(rippleDataset['week_generation']['value'])
 _, _, w, h = font.getbbox(ripple_yield)
 x = history_week_center - (w / 2)
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
 
-ripple_yield = rippleDataset['month_savings']['unit'] + str(rippleDataset['month_savings']['value'])
+ripple_yield = str(rippleDataset['month_generation']['value'])
 _, _, w, h = font.getbbox(ripple_yield)
 x = history_month_center - (w / 2)
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
 
-ripple_yield = rippleDataset['year_savings']['unit'] + str(rippleDataset['year_savings']['value'])
+ripple_yield = str(rippleDataset['year_generation']['value'])
 _, _, w, h = font.getbbox(ripple_yield)
 x = history_year_center - (w / 2)
 draw.text((x, y), ripple_yield, inky_display.BLACK, font)
@@ -383,5 +436,3 @@ inky_display.show()
 
 logentry =  "Finished running monitor: " + formatted_last_update
 print(logentry)
-
-
