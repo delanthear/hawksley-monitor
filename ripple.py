@@ -51,7 +51,7 @@ def getRippleData(apiKey):
     rippleDataset = rippleData.json()
 
     
-    latest_wind_speed = rippleDataset["data"]["summary"]["wind_speed_mps"]
+    latest_wind_speed = rippleDataset["data"]["summary"]["wind_speed_mps"] * 2.23694
     
 
     def number_format(value, decimals=2):
