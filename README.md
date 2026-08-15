@@ -24,3 +24,4 @@ This needs a token from the application, the url of the server and a value for t
 ## Notes
 Since the faiure of Ripple, I've updated the ripple code to talk to the Kirk Hill Dashboard instead. If anyone out there has access to any of the other dashboards, let me know and I'll try and add code for them too
 
+monitor-phat does not include the code to trigger gotify yet.  You can add it from -what if you need it!
